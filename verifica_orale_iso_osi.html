@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifica - Livello 1 ISO/OSI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; }
+        .header h1 { font-size: 28px; margin-bottom: 10px; }
+        .header p { font-size: 16px; opacity: 0.9; }
+        .student-info { padding: 30px; background: #f8f9fa; border-bottom: 2px solid #e9ecef; }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .info-field { display: flex; flex-direction: column; }
+        .info-field label { font-weight: 600; color: #495057; margin-bottom: 5px; font-size: 14px; }
+        .info-field input { padding: 10px; border: 2px solid #dee2e6; border-radius: 8px; font-size: 14px; transition: all 0.3s; }
+        .info-field input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        .questions-container { padding: 30px; }
+        .question { margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px; border-left: 4px solid #667eea; }
+        .question-text { font-weight: 600; color: #212529; margin-bottom: 15px; font-size: 16px; }
+        .question-number { color: #667eea; margin-right: 8px; }
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        .option { display: flex; align-items: center; padding: 12px; background: white; border: 2px solid #dee2e6; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+        .option:hover { border-color: #667eea; background: #f8f9ff; }
+        .option input[type="radio"] { margin-right: 10px; cursor: pointer; }
+        .option label { cursor: pointer; flex: 1; }
+        .submit-container { padding: 30px; text-align: center; background: #f8f9fa; border-top: 2px solid #e9ecef; }
+        .submit-btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 15px 40px; font-size: 18px; font-weight: 600; border-radius: 10px; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); }
+        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5); }
+        .result { padding: 30px; text-align: center; display: none; }
+        .result.show { display: block; }
+        .score { font-size: 48px; font-weight: bold; color: #667eea; margin: 20px 0; }
+        .message { font-size: 20px; color: #495057; margin: 15px 0; }
+        .error { color: #dc3545; padding: 10px; margin: 10px 0; background: #f8d7da; border-radius: 8px; display: none; }
+        .loading { display: none; text-align: center; padding: 20px; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .teacher-btn { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; font-size: 24px; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); transition: all 0.3s; z-index: 1000; }
+        .teacher-btn:hover { transform: scale(1.1); box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5); }
+        .teacher-panel { padding: 30px; }
+        .teacher-panel h2 { color: #667eea; margin-bottom: 20px; text-align: center; }
+        .stats-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .stat-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; text-align: center; }
+        .stat-card .stat-number { font-size: 32px; font-weight: bold; margin-bottom: 5px; }
+        .stat-card .stat-label { font-size: 14px; opacity: 0.9; }
+        .students-list { max-height: 500px; overflow-y: auto; }
+        .student-card { background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 15px; border-left: 4px solid #667eea; }
+        .student-card.excellent { border-left-color: #28a745; }
+        .student-card.good { border-left-color: #17a2b8; }
+        .student-card.sufficient { border-left-color: #ffc107; }
+        .student-card.insufficient { border-left-color: #dc3545; }
+        .student-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .student-name { font-weight: 600; font-size: 18px; color: #212529; }
+        .student-score { font-size: 24px; font-weight: bold; color: #667eea; }
+        .student-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; font-size: 14px; color: #6c757d; }
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: white; margin: 15% auto; padding: 30px; border-radius: 15px; width: 90%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .modal h3 { color: #667eea; margin-bottom: 20px; text-align: center; }
+        .modal input[type="password"] { width: 100%; padding: 12px; border: 2px solid #dee2e6; border-radius: 8px; font-size: 16px; margin-bottom: 15px; }
+        .modal input[type="password"]:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        .modal-buttons { display: flex; gap: 10px; }
+        .modal-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .modal-btn.confirm { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .modal-btn.cancel { background: #6c757d; color: white; }
+        .modal-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .back-btn { background: #6c757d; color: white; border: none; padding: 12px 30px; font-size: 16px; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.3s; margin-bottom: 20px; }
+        .back-btn:hover { background: #5a6268; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Verifica di Sistemi</h1>
+            <p>Il Livello 1 del Modello ISO/OSI - Mezzi Trasmissivi e Protocolli</p>
+        </div>
+        <div class="student-info">
+            <div class="info-grid">
+                <div class="info-field"><label for="nome">Nome *</label><input type="text" id="nome" required></div>
+                <div class="info-field"><label for="cognome">Cognome *</label><input type="text" id="cognome" required></div>
+                <div class="info-field"><label for="classe">Classe *</label><input type="text" id="classe" required></div>
+                <div class="info-field"><label for="sezione">Sezione *</label><input type="text" id="sezione" required></div>
+                <div class="info-field"><label for="data">Data *</label><input type="date" id="data" required></div>
+            </div>
+            <div class="error" id="error-message"></div>
+        </div>
+        <form id="quiz-form">
+            <div class="questions-container" id="questions"></div>
+            <div class="submit-container">
+                <div class="loading" id="loading"><div class="spinner"></div><p>Invio in corso...</p></div>
+                <button type="submit" class="submit-btn" id="submit-btn">Invia Verifica</button>
+            </div>
+        </form>
+        <div class="result" id="result">
+            <h2>✅ Verifica Completata!</h2>
+            <div class="score" id="score"></div>
+            <div class="message" id="message"></div>
+        </div>
+        <div class="teacher-panel" id="teacher-panel" style="display: none;">
+            <h2>📊 Pannello Docente</h2>
+            <div class="stats-summary" id="stats-summary"></div>
+            <div class="students-list" id="students-list"></div>
+        </div>
+    </div>
+    <button class="teacher-btn" id="teacher-btn" title="Accesso Docente">👨‍🏫</button>
+    <div class="modal" id="password-modal">
+        <div class="modal-content">
+            <h3>🔐 Accesso Docente</h3>
+            <input type="password" id="teacher-password" placeholder="Inserisci la password">
+            <div class="error" id="modal-error" style="margin-bottom: 15px;"></div>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" id="cancel-btn">Annulla</button>
+                <button class="modal-btn confirm" id="confirm-btn">Accedi</button>
+            </div>
+        </div>
+    </div>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, push, set, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        const firebaseConfig = {
+            apiKey: "AIzaSyBsB6MHZtZXk-1XTGuqJpROCGc9-KTy6pU",
+            authDomain: "studyshare-3d5f9.firebaseapp.com",
+            databaseURL: "https://studyshare-3d5f9-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "studyshare-3d5f9",
+            storageBucket: "studyshare-3d5f9.firebasestorage.app",
+            messagingSenderId: "801438647195",
+            appId: "1:801438647195:web:4424458a5d1c238c05973e"
+        };
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const questions = [
+            { question: "Qual è la velocità di propagazione tipica del segnale elettrico nei cavi in rame?", options: ["300.000 km/s", "200.000 km/s", "100.000 km/s", "50.000 km/s"], correct: 1 },
+            { question: "Cosa indica l'acronimo STP?", options: ["Simple Twisted Pair", "Shielded Twisted Pair", "Standard Transmission Protocol", "Secure Transfer Point"], correct: 1 },
+            { question: "Quale categoria di doppino è adatta per reti locali fino a 100 Mbps?", options: ["Categoria 3", "Categoria 4", "Categoria 5", "Categoria 6"], correct: 2 },
+            { question: "Quale vantaggio principale hanno le fibre ottiche rispetto ai cavi coassiali?", options: ["Costo inferiore", "Installazione più semplice", "Velocità di trasmissione molto maggiore", "Maggiore flessibilità"], correct: 2 },
+            { question: "L'indice di rifrazione del vetro è circa:", options: ["1.0", "1.33", "1.5", "2.0"], correct: 2 },
+            { question: "Quante telefonate possono passare contemporaneamente in una singola fibra ottica?", options: ["1.000", "5.000", "12.000", "50.000"], correct: 2 },
+            { question: "Quale standard IEEE si riferisce alle reti Ethernet?", options: ["IEEE 802.3", "IEEE 802.5", "IEEE 802.11", "IEEE 802.6"], correct: 0 },
+            { question: "Cosa significa CSMA/CD?", options: ["Carrier Signal Multiple Access/Collision Detection", "Carrier Sense Multiple Access/Collision Detection", "Central System Multiple Access/Control Data", "Carrier Sense Media Access/Control Detection"], correct: 1 },
+            { question: "Qual è la velocità trasmissiva iniziale della rete Ethernet?", options: ["1 Mbps", "10 Mbps", "100 Mbps", "1 Gbps"], correct: 1 },
+            { question: "Qual è la dimensione minima di una trama Ethernet?", options: ["32 byte", "46 byte", "64 byte", "128 byte"], correct: 2 },
+            { question: "Quanti byte compongono un indirizzo MAC?", options: ["4", "6", "8", "12"], correct: 1 },
+            { question: "Il livello Data Link è suddiviso in due sottolivelli:", options: ["MAC e IP", "LLC e MAC", "TCP e UDP", "Physical e Network"], correct: 1 },
+            { question: "Quale topologia di rete ha il minor numero di canali?", options: ["Stella", "Anello", "Bus", "Albero"], correct: 3 },
+            { question: "In una rete a stella, il numero di canali è:", options: ["c = n", "c = n - 1", "c = n + 1", "c = 2n"], correct: 1 },
+            { question: "La codifica Manchester prevede:", options: ["Una transizione ogni 2 bit", "Una transizione nel mezzo di ogni bit", "Nessuna transizione", "Transizioni casuali"], correct: 1 },
+            { question: "Cosa indica l'acronimo FCS?", options: ["Fast Communication System", "Frame Check Sequence", "File Control System", "Forward Communication Signal"], correct: 1 },
+            { question: "Il bit di parità serve per:", options: ["Aumentare la velocità", "Rilevare errori", "Comprimere i dati", "Sincronizzare il clock"], correct: 1 },
+            { question: "Quale standard IEEE si riferisce alle reti Token Ring?", options: ["IEEE 802.3", "IEEE 802.5", "IEEE 802.11", "IEEE 802.6"], correct: 1 },
+            { question: "La velocità trasmissiva iniziale della rete Token Ring era:", options: ["2 MHz", "4 MHz", "8 MHz", "16 MHz"], correct: 1 },
+            { question: "Il token è:", options: ["Un tipo di cavo", "Una configurazione di bit", "Un protocollo di rete", "Un dispositivo hardware"], correct: 1 },
+            { question: "L'Active Monitor in una rete Token Ring viene designato:", options: ["Dal produttore", "Per elezione dai computer connessi", "Casualmente", "Dal sistema operativo"], correct: 1 },
+            { question: "Quanti byte compone uno slot DQDB?", options: ["32", "48", "53", "64"], correct: 2 },
+            { question: "Quale standard IEEE si riferisce alle reti wireless?", options: ["IEEE 802.3", "IEEE 802.5", "IEEE 802.11", "IEEE 802.6"], correct: 2 },
+            { question: "La frequenza di lavoro dello standard IEEE 802.11 è:", options: ["900 MHz", "1.8 GHz", "2.4 GHz", "5 GHz"], correct: 2 },
+            { question: "Cosa significa ACK?", options: ["Access Control Key", "Acknowledgement", "Advanced Communication Kit", "Automatic Check Key"], correct: 1 },
+            { question: "Il protocollo HDLC è utilizzato per:", options: ["Reti locali", "Reti wireless", "Reti pubbliche", "Reti satellitari"], correct: 2 },
+            { question: "I flag nella trama HDLC hanno il valore:", options: ["01010101", "11111111", "01111110", "10101010"], correct: 2 },
+            { question: "Cosa significa PPP?", options: ["Public Protocol Point", "Point to Point Protocol", "Private Packet Protocol", "Parallel Processing Protocol"], correct: 1 },
+            { question: "Il connettore RJ45 per reti LAN utilizza:", options: ["4 pin", "6 pin", "8 pin", "12 pin"], correct: 2 },
+            { question: "Il throughput massimo consigliato per una rete Ethernet con CSMA/CD è:", options: ["15%", "35%", "50%", "75%"], correct: 1 }
+        ];
+        const questionsContainer = document.getElementById('questions');
+        questions.forEach((q, index) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'question';
+            questionDiv.innerHTML = `<div class="question-text"><span class="question-number">${index + 1}.</span>${q.question}</div><div class="options">${q.options.map((option, optIndex) => `<div class="option"><input type="radio" id="q${index}_${optIndex}" name="question${index}" value="${optIndex}" required><label for="q${index}_${optIndex}">${option}</label></div>`).join('')}</div>`;
+            questionsContainer.appendChild(questionDiv);
+        });
+        document.getElementById('data').valueAsDate = new Date();
+        document.getElementById('quiz-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nome = document.getElementById('nome').value.trim();
+            const cognome = document.getElementById('cognome').value.trim();
+            const classe = document.getElementById('classe').value.trim();
+            const sezione = document.getElementById('sezione').value.trim();
+            const data = document.getElementById('data').value;
+            if (!nome || !cognome || !classe || !sezione || !data) { showError('Compila tutti i campi obbligatori!'); return; }
+            let score = 0; const answers = [];
+            questions.forEach((q, index) => {
+                const selected = document.querySelector(`input[name="question${index}"]:checked`);
+                if (selected) { const answer = parseInt(selected.value); answers.push(answer); if (answer === q.correct) score++; }
+            });
+            document.getElementById('submit-btn').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+            try {
+                const verificheRef = ref(database, 'verifiche');
+                const newVerificaRef = push(verificheRef);
+                await set(newVerificaRef, { nome, cognome, classe, sezione, data, punteggio: score, totale: 30, risposte: answers, timestamp: Date.now() });
+                showResult(score);
+            } catch (error) {
+                console.error('Errore:', error);
+                showError('Errore durante il salvataggio. Riprova.');
+                document.getElementById('submit-btn').style.display = 'block';
+                document.getElementById('loading').style.display = 'none';
+            }
+        });
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => errorDiv.style.display = 'none', 5000);
+        }
+        function showResult(score) {
+            document.querySelector('.student-info').style.display = 'none';
+            document.querySelector('.questions-container').style.display = 'none';
+            document.querySelector('.submit-container').style.display = 'none';
+            const resultDiv = document.getElementById('result');
+            document.getElementById('score').textContent = `${score}/30`;
+            let message = score >= 27 ? 'Eccellente! Ottima conoscenza della materia! 🎉' : score >= 24 ? 'Molto bene! Buona preparazione! 👏' : score >= 18 ? 'Sufficiente. Continua a studiare! 📚' : 'Insufficiente. È necessario approfondire gli argomenti. 💪';
+            document.getElementById('message').textContent = message;
+            resultDiv.classList.add('show');
+        }
+        const teacherBtn = document.getElementById('teacher-btn');
+        const passwordModal = document.getElementById('password-modal');
+        const teacherPasswordInput = document.getElementById('teacher-password');
+        const confirmBtn = document.getElementById('confirm-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const modalError = document.getElementById('modal-error');
+        teacherBtn.addEventListener('click', () => { passwordModal.style.display = 'block'; teacherPasswordInput.value = ''; teacherPasswordInput.focus(); });
+        cancelBtn.addEventListener('click', () => { passwordModal.style.display = 'none'; modalError.style.display = 'none'; });
+        passwordModal.addEventListener('click', (e) => { if (e.target === passwordModal) { passwordModal.style.display = 'none'; modalError.style.display = 'none'; } });
+        teacherPasswordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') confirmBtn.click(); });
+        confirmBtn.addEventListener('click', async () => {
+            const password = teacherPasswordInput.value;
+            if (password === 'zammy') { passwordModal.style.display = 'none'; await loadTeacherPanel(); }
+            else { modalError.textContent = 'Password errata!'; modalError.style.display = 'block'; teacherPasswordInput.value = ''; teacherPasswordInput.focus(); }
+        });
+        async function loadTeacherPanel() {
+            document.querySelector('.student-info').style.display = 'none';
+            document.querySelector('.questions-container').style.display = 'none';
+            document.querySelector('.submit-container').style.display = 'none';
+            document.getElementById('result').style.display = 'none';
+            teacherBtn.style.display = 'none';
+            const teacherPanel = document.getElementById('teacher-panel');
+            teacherPanel.style.display = 'block';
+            try {
+                const verificheRef = ref(database, 'verifiche');
+                const snapshot = await get(verificheRef);
+                if (snapshot.exists()) {
+                    const verifiche = [];
+                    snapshot.forEach((childSnapshot) => { verifiche.push({ id: childSnapshot.key, ...childSnapshot.val() }); });
+                    verifiche.sort((a, b) => b.timestamp - a.timestamp);
+                    displayTeacherStats(verifiche);
+                    displayStudentsList(verifiche);
+                } else {
+                    document.getElementById('students-list').innerHTML = '<p style="text-align: center; color: #6c757d;">Nessuna verifica ancora completata.</p>';
+                }
+            } catch (error) {
+                console.error('Errore:', error);
+                document.getElementById('students-list').innerHTML = '<p style="text-align: center; color: #dc3545;">Errore nel caricamento dei dati.</p>';
+            }
+        }
+        function displayTeacherStats(verifiche) {
+            const totalStudents = verifiche.length;
+            const scores = verifiche.map(v => v.punteggio);
+            const avgScore = totalStudents > 0 ? (scores.reduce((a, b) => a + b, 0) / totalStudents).toFixed(1) : 0;
+            const maxScore = totalStudents > 0 ? Math.max(...scores) : 0;
+            const passedStudents = scores.filter(s => s >= 18).length;
+            document.getElementById('stats-summary').innerHTML = `<div class="stat-card"><div class="stat-number">${totalStudents}</div><div class="stat-label">Studenti</div></div><div class="stat-card"><div class="stat-number">${avgScore}</div><div class="stat-label">Media</div></div><div class="stat-card"><div class="stat-number">${maxScore}</div><div class="stat-label">Voto Max</div></div><div class="stat-card"><div class="stat-number">${passedStudents}</div><div class="stat-label">Promossi</div></div>`;
+        }
+        function displayStudentsList(verifiche) {
+            const backButton = '<button class="back-btn" onclick="location.reload()">← Torna alla Verifica</button>';
+            const studentsHTML = verifiche.map(v => {
+                const percentage = (v.punteggio / v.totale * 100).toFixed(1);
+                let cardClass = 'student-card';
+                if (v.punteggio >= 27) cardClass += ' excellent';
+                else if (v.punteggio >= 24) cardClass += ' good';
+                else if (v.punteggio >= 18) cardClass += ' sufficient';
+                else cardClass += ' insufficient';
+                const date = new Date(v.data);
+                const formattedDate = date.toLocaleDateString('it-IT');
+                return `<div class="${cardClass}"><div class="student-header"><div class="student-name">${v.cognome} ${v.nome}</div><div class="student-score">${v.punteggio}/${v.totale}</div></div><div class="student-details"><div><strong>Classe:</strong> ${v.classe}${v.sezione}</div><div><strong>Data:</strong> ${formattedDate}</div><div><strong>Percentuale:</strong> ${percentage}%</div></div></div>`;
+            }).join('');
+            document.getElementById('students-list').innerHTML = backButton + studentsHTML;
+        }
+    </script>
+</body>
+</html>
